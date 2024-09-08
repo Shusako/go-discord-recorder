@@ -54,6 +54,8 @@ func main() {
 	defer Context.discordSession.Close()
 	defer Context.voiceConnection.Close()
 
+	// TODO: 2024/09/08: Considering ripping whipser out and use this instead:
+	//		 https://github.com/mutablelogic/go-whisper
 	// TODO: 2023/12/24 17:37:46 [DG0] wsapi.go:796:onVoiceServerUpdate() onVoiceServerUpdate voice.open, did not receive voice Session ID in time
 	// TODO: disconnect protection
 	// 		when there's a disconnect, the opusrecv doesnt close, but it stops receiving packets
@@ -77,7 +79,7 @@ func main() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	<-c
 
-	fmt.Println("done")
+	log.Trace().Msg("done")
 }
 
 func opusDecode(opusRecv <-chan *discordgo.Packet) chan VoiceBuffer[int16] {
@@ -90,7 +92,7 @@ func opusDecode(opusRecv <-chan *discordgo.Packet) chan VoiceBuffer[int16] {
 		for p := range opusRecv {
 			user, userExists := GetSSRCMap().GetUser(p.SSRC)
 			if !userExists {
-				fmt.Println("user not found for ssrc:", p.SSRC, "opus packet going to be dropped")
+				log.Warn().Uint32("p.SSRC", p.SSRC).Msg("user not found for ssrc, opus packet is going to be dropped")
 				continue
 			}
 
@@ -105,7 +107,7 @@ func opusDecode(opusRecv <-chan *discordgo.Packet) chan VoiceBuffer[int16] {
 				var err error
 				decoder, err = gopus.NewDecoder(discordSampleRate, discordChannelCount)
 				if err != nil {
-					fmt.Println(fmt.Sprintf("failed to create decoder for %d", p.SSRC), err)
+					log.Err(err).Uint32("p.SSRC", p.SSRC).Msg("failed to create decoder")
 					return
 				}
 				decoderMap[user.ID] = decoder
@@ -113,7 +115,7 @@ func opusDecode(opusRecv <-chan *discordgo.Packet) chan VoiceBuffer[int16] {
 
 			pcm, err := decoder.Decode(p.Opus, discordFrameSize, false)
 			if err != nil {
-				fmt.Println("failed to decode", err)
+				log.Err(err).Msg("failed to decode")
 				return
 			}
 
@@ -148,7 +150,10 @@ func bufferVoice(input <-chan VoiceBuffer[int16]) chan VoiceBuffer[int16] {
 					}
 
 					if time.Since(buffer.lastUpdated) > deadTime {
-						fmt.Println("flushing buffer for", GetUserCache().GetUsernameOrDefault(buffer.identifier, "unknown"), "(", buffer.identifier, ")")
+						log.Trace().
+							Str("Username", GetUserCache().GetUsernameOrDefault(buffer.identifier, "unknown")).
+							Str("buffer.identifier", buffer.identifier).
+							Msg("flushing buffer")
 						output <- *buffer
 						buffer.Clear()
 					}

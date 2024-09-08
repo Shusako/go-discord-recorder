@@ -3,9 +3,10 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/rs/zerolog/log"
 )
 
 // preprocessAudio handles converting from discords
@@ -53,11 +54,13 @@ func downsampleVoice(input <-chan VoiceBuffer[int16]) chan VoiceBuffer[float32] 
 			// 48kHz (discord) -> 16kHz (whisper)
 			floatData, err := preprocessAudio(buffer.pcm)
 			if err != nil {
-				fmt.Println("error preprocessing audio,", err)
+				log.Err(err).Msg("error preproccessing audio")
 				return
 			}
 
-			fmt.Printf("Sending length of data to the transcriber: %d \n", len(floatData))
+			log.Trace().
+				Int("Length", len(floatData)).
+				Msg("Sending data to the transcriber")
 			output <- NewVoiceBuffer[float32](floatData, buffer.identifier)
 		}
 	}()

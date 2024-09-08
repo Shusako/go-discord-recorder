@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/rs/zerolog/log"
 )
 
 type Transcript struct {
@@ -33,7 +33,7 @@ var (
 func handleConnection(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Println("error upgrading websocket connection,", err)
+		log.Err(err).Msg("error upgrading websocket connection")
 		return
 	}
 	defer ws.Close()
@@ -58,7 +58,7 @@ func handleUpdates(transcriptChannel <-chan Transcript) {
 	filename := "transcripts/transcript_" + timestamp + ".txt"
 	file, err := os.Create(filename)
 	if err != nil {
-		fmt.Println("error creating file:", err)
+		log.Err(err).Msg("error creating file")
 		return
 	}
 	defer file.Close()
@@ -76,7 +76,7 @@ func handleUpdates(transcriptChannel <-chan Transcript) {
 		// Write transcript to file
 		_, err := file.WriteString(msg.Text)
 		if err != nil {
-			fmt.Println("error writing to file:", err)
+			log.Err(err).Msg("error writing to file")
 		}
 
 		clientsMutex.Lock()
@@ -102,8 +102,8 @@ func manageTranscripts(transcriptChannel <-chan Transcript) {
 
 		err := http.ListenAndServe(":8162", nil)
 		if err != nil {
-			fmt.Println("error with ListenAndServe: ", err)
+			log.Err(err).Msg("error with ListenAndServe")
 		}
-		fmt.Println("WebSocket server started on :8162")
+		log.Trace().Msg("WebSocket server started on :8162")
 	}()
 }

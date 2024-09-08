@@ -1,6 +1,6 @@
 module go-discord-recorder
 
-go 1.21.4
+go 1.23.1
 
 require (
 	github.com/bwmarrin/discordgo v0.28.1

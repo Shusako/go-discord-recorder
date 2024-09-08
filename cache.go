@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/rs/zerolog/log"
 )
 
 // holds the mapping from SSRC to UserID
@@ -94,7 +94,7 @@ func (m *UserCache) GetUserLazy(userId string) (user discordgo.User, ok bool) {
 
 	liveUser, err := Context.discordSession.User(userId)
 	if err != nil {
-		fmt.Println("error fetching user,", err)
+		log.Err(err).Msg("error fetching user")
 		return discordgo.User{}, false
 	}
 

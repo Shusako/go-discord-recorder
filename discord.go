@@ -1,17 +1,17 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/rs/zerolog/log"
 )
 
 func startDiscordBot(token, guildId, channelId string) (*discordgo.Session, *discordgo.VoiceConnection, error) {
 	// Create a new Discord session using the provided bot token.
 	discordSession, err := discordgo.New("Bot " + token)
 	if err != nil {
-		fmt.Println("error creating Discord session,", err)
+		log.Err(err).Msg("error creating Discord session")
 		return nil, nil, err
 	}
 
@@ -25,7 +25,7 @@ func startDiscordBot(token, guildId, channelId string) (*discordgo.Session, *dis
 	// Open a websocket connection to Discord and begin listening.
 	err = discordSession.Open()
 	if err != nil {
-		fmt.Println("error opening connection,", err)
+		log.Err(err).Msg("error opening connection")
 		discordSession.Close()
 		return nil, nil, err
 	}
@@ -33,7 +33,7 @@ func startDiscordBot(token, guildId, channelId string) (*discordgo.Session, *dis
 	// Join the provided voice channel
 	voiceConnection, err := discordSession.ChannelVoiceJoin(guildId, channelId, true, false)
 	if err != nil {
-		fmt.Println("error joining voice channel,", err)
+		log.Err(err).Msg("error joining voice channel")
 		discordSession.Close()
 		voiceConnection.Close()
 		return nil, nil, err
@@ -50,17 +50,20 @@ func startDiscordBot(token, guildId, channelId string) (*discordgo.Session, *dis
 }
 
 func ready(s *discordgo.Session, event *discordgo.Ready) {
-	fmt.Println("Bot is ready!")
+	log.Trace().Msg("Bot is ready!")
 }
 
 func voiceStatusUpdate(s *discordgo.Session, event *discordgo.VoiceStateUpdate) {
-	fmt.Println(event.Member.User.Username, event.ChannelID == "", event.ChannelID)
+	log.Trace().
+		Str("Username", event.Member.User.Username).
+		Bool("Channel empty", event.ChannelID == "").
+		Str("ChannelID", event.ChannelID)
 }
 
 func voiceDisconnected(s *discordgo.Session, event *discordgo.Disconnect) {
-	fmt.Println("voice disconnected")
+	log.Trace().Msg("voice disconnected")
 }
 
 func voiceConnected(s *discordgo.Session, event *discordgo.Connect) {
-	fmt.Println("voice connected")
+	log.Trace().Msg("voice connected")
 }

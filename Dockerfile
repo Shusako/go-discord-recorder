@@ -1,12 +1,16 @@
-FROM nvidia/cuda:12.3.1-devel-ubuntu22.04 AS build
+# https://hub.docker.com/r/nvidia/cuda/tags?page_size=&ordering=&name=devel-ubuntu
+# must match the cude toolkit version you have installed
+# also update the runner below
+FROM nvidia/cuda:12.6.1-devel-ubuntu24.04 AS build
 RUN apt update \
     && apt install -y wget build-essential \
     && apt clean
 
 # Install Go tools
 WORKDIR /tmp
-RUN wget https://go.dev/dl/go1.21.5.linux-amd64.tar.gz && \
-    tar -xzf go1.21.5.linux-amd64.tar.gz
+# Copy linux link from https://go.dev/dl/ to update
+RUN wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz && \
+    tar -xzf go1.23.1.linux-amd64.tar.gz
 ENV PATH="/tmp/go/bin:${PATH}"
 ENV GOPATH="/tmp/go"
 
@@ -39,7 +43,7 @@ RUN if [ "$BUILD_RACE" = "1" ]; then \
     fi
 
 # Prepare runner image
-FROM nvidia/cuda:12.2.2-devel-ubuntu22.04 AS runner
+FROM nvidia/cuda:12.6.1-devel-ubuntu24.04 AS runner
 
 RUN apt update \
     && apt install -y ffmpeg \

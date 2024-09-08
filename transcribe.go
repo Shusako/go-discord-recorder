@@ -5,12 +5,13 @@ import (
 	"io"
 
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
+	"github.com/rs/zerolog/log"
 )
 
 func transcribeAudio(input <-chan VoiceBuffer[float32]) chan Transcript {
 	model, err := whisper.New(modelPath)
 	if err != nil {
-		fmt.Println("error loading model,", err)
+		log.Err(err).Msg("error loading model")
 		return nil
 	}
 
@@ -24,12 +25,12 @@ func transcribeAudio(input <-chan VoiceBuffer[float32]) chan Transcript {
 
 			context, err := model.NewContext()
 			if err != nil {
-				fmt.Println("error creating context,", err)
+				log.Err(err).Msg("error creating context")
 				continue // or handle some other way?
 			}
 
 			if err := context.Process(buffer.pcm, nil, nil); err != nil {
-				fmt.Println("error transcribing voicebuffer,", err)
+				log.Err(err).Msg("error transcribing voicebuffer")
 				continue // or handle some other way?
 			}
 
@@ -40,7 +41,7 @@ func transcribeAudio(input <-chan VoiceBuffer[float32]) chan Transcript {
 					break
 				}
 				if err != nil {
-					fmt.Printf("error fetching next segment: %v\n", err)
+					log.Err(err).Msg("error fetching next segment")
 					break
 				}
 
@@ -50,7 +51,7 @@ func transcribeAudio(input <-chan VoiceBuffer[float32]) chan Transcript {
 				text += fmt.Sprintf("[%6.2fs->%6.2fs] [%s] %s\n", startTime+segment.Start.Seconds(), startTime+segment.End.Seconds(), name, segment.Text)
 			}
 
-			fmt.Println(text)
+			log.Info().Msg(text)
 			// TODO: differentiate between temporary and final transcripts
 			output <- Transcript{buffer.identifier, "", text, ""}
 		}
