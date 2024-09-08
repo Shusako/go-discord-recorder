@@ -1,0 +1,24 @@
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - BUILD_RACE=0
+    environment:
+      - DISCORD_TOKEN=${GO_DISCORD_RECORDER_TOKEN}
+      - GUILD_ID=445784302526005248
+      - CHANNEL_ID=830213250599485460
+      - LISTENING_TO=you
+    ports:
+      - "8162:8162"
+    volumes:
+      - ./public:/public
+      - ./transcripts:/transcripts
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]

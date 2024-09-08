@@ -1,0 +1,28 @@
+# Project
+resources/
+transcripts/
+
+# Visual Studio Code
+.vscode/
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+*.prof
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.lz4
+*.tar.sz
+*.tar.zst
+*.zip
+*.egg
+*.egg-info/
+dist/
+build/
+bin/
