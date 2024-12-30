@@ -8,9 +8,9 @@ services:
         - BUILD_RACE=0
     environment:
       - DISCORD_TOKEN=${GO_DISCORD_RECORDER_TOKEN}
-      - GUILD_ID=445784302526005248
-      - CHANNEL_ID=830213250599485460
-      - MODEL_PATH=resources/ggml-small.en.bin
+      - GUILD_ID=${GO_DISCORD_RECORDER_GUILD}
+      - CHANNEL_ID=${GO_DISCORD_RECORDER_CHANNEL}
+      - MODEL_PATH=${GO_DISCORD_RECORDER_MODEL_PATH}
       - LISTENING_TO=you
     ports:
       - "8162:8162"
