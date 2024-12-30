@@ -7,7 +7,7 @@ These transcriptions are outputted to the 'transcripts' folder.
 Example:
 
 ```
-[ 3.26s->  5.18s] [shusako] I don't know about that one, Chief.
+[  3.26s->  5.18s] [shusako] I don't know about that one, Chief.
 [  7.19s-> 10.33s] [sablemyst] I have my little seconds timer clock open.
 [ 20.19s-> 24.51s] [lostsky000] I'm just waiting for the day when I can tell Parsley to do my roles for me.
 ```
