@@ -10,6 +10,7 @@ services:
       - DISCORD_TOKEN=${GO_DISCORD_RECORDER_TOKEN}
       - GUILD_ID=445784302526005248
       - CHANNEL_ID=830213250599485460
+      - MODEL_PATH=resources/ggml-small.en.bin
       - LISTENING_TO=you
     ports:
       - "8162:8162"

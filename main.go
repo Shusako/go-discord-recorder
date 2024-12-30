@@ -14,11 +14,11 @@ const (
 	discordFrameSize    = 960
 	discordSampleRate   = 48000
 	discordChannelCount = 1
-	modelPath           = "resources/ggml-small.en.bin"
 )
 
 var (
 	globalStartTime time.Time
+	modelPath       = os.Getenv("MODEL_PATH")
 )
 
 func main() {
