@@ -7,6 +7,43 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+var (
+	voiceConnection *discordgo.VoiceConnection
+	discordSession  *discordgo.Session
+)
+
+func discordToOpus() chan *discordgo.Packet {
+	opusChannel := make(chan *discordgo.Packet)
+
+	token := os.Getenv("DISCORD_TOKEN")
+	guildId := os.Getenv("GUILD_ID")
+	channelId := os.Getenv("CHANNEL_ID")
+
+	var err error
+
+	go func() {
+		discordSession, voiceConnection, err = startDiscordBot(token, guildId, channelId)
+
+		if err != nil {
+			log.Err(err).Msg("failed to start discord bot")
+			return
+		}
+
+		defer discordSession.Close()
+		defer voiceConnection.Close()
+
+		log.Info().Msg("Processing discord packets")
+
+		for packet := range voiceConnection.OpusRecv {
+			opusChannel <- packet
+		}
+
+		log.Error().Msg("We are past the voiceConnection.opusrecv, this shouldn't happen under normal circumstances")
+	}()
+
+	return opusChannel
+}
+
 func startDiscordBot(token, guildId, channelId string) (*discordgo.Session, *discordgo.VoiceConnection, error) {
 	// Create a new Discord session using the provided bot token.
 	discordSession, err := discordgo.New("Bot " + token)

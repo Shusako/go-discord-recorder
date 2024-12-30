@@ -47,7 +47,7 @@ func transcribeAudio(input <-chan VoiceBuffer[float32]) chan Transcript {
 
 				name := GetUserCache().GetUsernameOrDefault(buffer.identifier, "unknown")
 
-				startTime := buffer.firstUpdated.Sub(Context.globalStartTime).Seconds()
+				startTime := buffer.firstUpdated.Sub(globalStartTime).Seconds()
 				text += fmt.Sprintf("[%6.2fs->%6.2fs] [%s] %s\n", startTime+segment.Start.Seconds(), startTime+segment.End.Seconds(), name, segment.Text)
 			}
 

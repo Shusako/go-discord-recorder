@@ -92,7 +92,7 @@ func (m *UserCache) GetUserLazy(userId string) (user discordgo.User, ok bool) {
 		return cachedUser, true
 	}
 
-	liveUser, err := Context.discordSession.User(userId)
+	liveUser, err := discordSession.User(userId)
 	if err != nil {
 		log.Err(err).Msg("error fetching user")
 		return discordgo.User{}, false

@@ -1,16 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/bwmarrin/discordgo"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"layeh.com/gopus"
 )
 
 const (
@@ -21,14 +18,8 @@ const (
 )
 
 var (
-	Context *AppContext
-)
-
-type AppContext struct {
-	voiceConnection *discordgo.VoiceConnection
-	discordSession  *discordgo.Session
 	globalStartTime time.Time
-}
+)
 
 func main() {
 	zerolog.TimeFieldFormat = time.RFC3339
@@ -36,23 +27,7 @@ func main() {
 		return time.Now().Local()
 	}
 
-	log.Info().Msg("This is a test of zero log")
-
-	token := os.Getenv("DISCORD_TOKEN")
-	guildId := os.Getenv("GUILD_ID")
-	channelId := os.Getenv("CHANNEL_ID")
-
-	Context = &AppContext{}
-
-	var err error
-
-	Context.discordSession, Context.voiceConnection, err = startDiscordBot(token, guildId, channelId)
-	if err != nil {
-		fmt.Println("failed to start discord bot")
-		return
-	}
-	defer Context.discordSession.Close()
-	defer Context.voiceConnection.Close()
+	log.Info().Msg("App startup")
 
 	// TODO: 2024/09/08: Considering ripping whipser out and use this instead:
 	//		 https://github.com/mutablelogic/go-whisper
@@ -66,13 +41,14 @@ func main() {
 	// TODO: buffer all transcripts and send to LLM for summarizing
 
 	// channel to handle voiceConnection.OpusRecv and it potentially breaking
-	pcmDataChannel := opusDecode(Context.voiceConnection.OpusRecv)
+	opusChannel := discordToOpus()
+	pcmDataChannel := opusDecode(opusChannel)
 	bufferedAudioChannel := bufferVoice(pcmDataChannel)
 	downsampledAudioChannel := downsampleVoice(bufferedAudioChannel)
 	transcriptChannel := transcribeAudio(downsampledAudioChannel)
 	manageTranscripts(transcriptChannel)
 
-	Context.globalStartTime = time.Now()
+	globalStartTime = time.Now()
 
 	// wait for sigint or sigterm to exit
 	c := make(chan os.Signal, 1)
@@ -80,50 +56,6 @@ func main() {
 	<-c
 
 	log.Trace().Msg("done")
-}
-
-func opusDecode(opusRecv <-chan *discordgo.Packet) chan VoiceBuffer[int16] {
-	decoderMap := make(map[string]*gopus.Decoder)
-	pcmData := make(chan VoiceBuffer[int16])
-
-	go func() {
-		defer close(pcmData)
-
-		for p := range opusRecv {
-			user, userExists := GetSSRCMap().GetUser(p.SSRC)
-			if !userExists {
-				log.Warn().Uint32("p.SSRC", p.SSRC).Msg("user not found for ssrc, opus packet is going to be dropped")
-				continue
-			}
-
-			if user.Bot {
-				// TODO: fix
-				// this is just a quick thing for now, want to ignore bots to prevent music bots from filling up memory
-				continue
-			}
-
-			decoder, ok := decoderMap[user.ID]
-			if !ok {
-				var err error
-				decoder, err = gopus.NewDecoder(discordSampleRate, discordChannelCount)
-				if err != nil {
-					log.Err(err).Uint32("p.SSRC", p.SSRC).Msg("failed to create decoder")
-					return
-				}
-				decoderMap[user.ID] = decoder
-			}
-
-			pcm, err := decoder.Decode(p.Opus, discordFrameSize, false)
-			if err != nil {
-				log.Err(err).Msg("failed to decode")
-				return
-			}
-
-			pcmData <- NewVoiceBuffer(pcm, user.ID)
-		}
-	}()
-
-	return pcmData
 }
 
 func bufferVoice(input <-chan VoiceBuffer[int16]) chan VoiceBuffer[int16] {
