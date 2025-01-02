@@ -1,7 +1,7 @@
 # https://hub.docker.com/r/nvidia/cuda/tags?page_size=&ordering=&name=devel-ubuntu
-# must match the cude toolkit version you have installed
+# must match the cuda toolkit version you have installed
 # also update the runner below
-FROM nvidia/cuda:12.6.1-devel-ubuntu24.04 AS build
+FROM nvidia/cuda:12.6.3-devel-ubuntu24.04 AS build
 RUN apt update \
     && apt install -y wget build-essential \
     && apt clean
@@ -43,7 +43,8 @@ RUN if [ "$BUILD_RACE" = "1" ]; then \
     fi
 
 # Prepare runner image
-FROM nvidia/cuda:12.6.1-devel-ubuntu24.04 AS runner
+# try nvidia/cuda:12.6.3-runtime-ubuntu24.04
+FROM nvidia/cuda:12.6.3-devel-ubuntu24.04 AS runner
 
 RUN apt update \
     && apt install -y ffmpeg \

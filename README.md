@@ -14,10 +14,11 @@ Example:
 
 # Installation
 
+- Clone repo
+- You'll need NVIDIA CUDA Toolkit installed (https://developer.nvidia.com/cuda-downloads), and the version has to match what is in the Dockerfile (it's in 2 spots).
 - You'll have to setup a discord bot through https://discord.com/developers/applications
   - It needs Voice Connect access
   - Copy the client secret and set it up in the GO_DISCORD_RECORDER_TOKEN environment variable
 - Setup your guild ID / channel ID in the GO_DISCORD_RECORDER_GUILD and GO_DISCORD_RECORDER_CHANNEL environment variables
 - Download a whisper model that is compatible with whisper.cpp from https://huggingface.co/ggerganov/whisper.cpp/tree/main - place it in the resources/ folder and post the relative path into the GO_DISCORD_RECORDER_MODEL_PATH environment variable (e.g. resources/ggml-small.en.bin)
-- Clone repo
 - docker compose up --build
